@@ -2,6 +2,7 @@ package com.dottydingo.hyperion.module.swagger;
 
 import com.dottydingo.hyperion.api.DeleteResponse;
 import com.dottydingo.hyperion.api.EntityResponse;
+import com.dottydingo.hyperion.api.HistoryResponse;
 import com.dottydingo.hyperion.service.configuration.ApiVersionPlugin;
 import com.dottydingo.hyperion.service.configuration.EntityPlugin;
 import com.dottydingo.hyperion.service.configuration.ServiceRegistry;
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -90,12 +92,18 @@ public class SwaggerSpecBuilder
         if(plugin.isMethodAllowed(HttpMethod.GET) || plugin.isMethodAllowed(HttpMethod.POST))
             apis.add(buildApi(plugin));
 
+        TypeFactory typeFactory = objectMapper.getTypeFactory();
+
         if(plugin.isHistoryEnabled())
+        {
             apis.add(buildHistory(plugin));
+            models.putAll(buildModels(String.format("%sHistoryResponse", plugin.getEndpointName()),
+                    typeFactory.constructParametricType(HistoryResponse.class, Serializable.class, pluginVersion.getApiClass())));
+        }
 
         api.setApis(apis);
 
-        TypeFactory typeFactory = objectMapper.getTypeFactory();
+
         models.putAll(buildModels(endpoint, typeFactory.constructType(pluginVersion.getApiClass())));
 
         if(plugin.isMethodAllowed(HttpMethod.GET))
@@ -262,7 +270,7 @@ public class SwaggerSpecBuilder
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("id",
-                "The id of the item being updated. If the id is also in the payload it must match this id.",
+                "One or more comma separated ids to retrieve.",
                 "path",
                 "string",
                 true));
@@ -347,7 +355,7 @@ public class SwaggerSpecBuilder
             JsonSchema schema = entry.getValue();
             if(schema.isObjectSchema())
             {
-                JsonSchema temp = new ObjectSchema();
+                JsonSchema temp = new ReferenceSchema();
                 temp.set$ref(schema.getId());
                 properties.put(entry.getKey(),temp);
                 modelMap.putAll(buildModels(schema.getId(),schema.asObjectSchema()));
@@ -357,7 +365,7 @@ public class SwaggerSpecBuilder
                 ObjectSchema entrySchema = (ObjectSchema) schema.asArraySchema().getItems().asSingleItems().getSchema();
 
                 ArraySchema arraySchema = new ArraySchema();
-                JsonSchema temp = new ObjectSchema();
+                JsonSchema temp = new ReferenceSchema();
                 temp.set$ref(entrySchema.getId());
                 arraySchema.setItemsSchema(temp);
                 properties.put(entry.getKey(),arraySchema);
