@@ -348,7 +348,7 @@ public class SwaggerSpecBuilder
     protected Map<String,Model> buildModels(String name, ObjectSchema objectSchema)
     {
         Map<String,Model> modelMap = new HashMap<String, Model>();
-        Map<String,JsonSchema> properties = new HashMap<String, JsonSchema>();
+        Map<String,JsonSchema> properties = new LinkedHashMap<String, JsonSchema>();
 
         for (Map.Entry<String, JsonSchema> entry : objectSchema.getProperties().entrySet())
         {
