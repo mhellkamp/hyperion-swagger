@@ -24,6 +24,12 @@ public class TypeIdSchemaFactoryWrapper extends SchemaFactoryWrapper
         };
     };
 
+    public TypeIdSchemaFactoryWrapper()
+    {
+        super();
+        this.visitorFactory = new FilteringVisitorFactory();
+    }
+
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType)
     {
