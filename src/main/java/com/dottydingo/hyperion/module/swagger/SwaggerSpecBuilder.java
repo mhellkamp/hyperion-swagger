@@ -31,6 +31,7 @@ public class SwaggerSpecBuilder
     private ServiceRegistry serviceRegistry;
     private String basePath;
     private ObjectMapper objectMapper;
+    private List<Resource> additionalResources = Collections.emptyList();
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry)
     {
@@ -47,6 +48,11 @@ public class SwaggerSpecBuilder
         this.objectMapper = objectMapper;
     }
 
+    public void setAdditionalResources(List<Resource> additionalResources)
+    {
+        this.additionalResources = additionalResources;
+    }
+
     public ResourceListing buildResourceListing()
     {
         ResourceListing listing = new ResourceListing();
@@ -61,6 +67,7 @@ public class SwaggerSpecBuilder
             resource.setPath(String.format("/%s",plugin.getEndpointName()));
             resources.add(resource);
         }
+        resources.addAll(additionalResources);
         listing.setApis(resources);
         return listing;
     }
