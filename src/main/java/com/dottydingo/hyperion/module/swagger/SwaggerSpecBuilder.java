@@ -10,17 +10,14 @@ import com.dottydingo.hyperion.service.context.HttpMethod;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -32,6 +29,7 @@ public class SwaggerSpecBuilder
     private String basePath;
     private ObjectMapper objectMapper;
     private List<Resource> additionalResources = Collections.emptyList();
+    private String resourceBundleBase = "com.dottydingo.hyperion.module.swagger.Messages";
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry)
     {
@@ -51,6 +49,11 @@ public class SwaggerSpecBuilder
     public void setAdditionalResources(List<Resource> additionalResources)
     {
         this.additionalResources = additionalResources;
+    }
+
+    public void setResourceBundleBase(String resourceBundleBase)
+    {
+        this.resourceBundleBase = resourceBundleBase;
     }
 
     public ResourceListing buildResourceListing()
@@ -78,6 +81,8 @@ public class SwaggerSpecBuilder
         if(plugin == null)
             return null;
 
+        ResourceBundle resourceBundle = getResourceBundle(plugin.getEndpointName());
+
         ApiDeclaration api = new ApiDeclaration();
         Map<String,Model> models = new HashMap<String, Model>();
         api.setModels(models);
@@ -93,17 +98,17 @@ public class SwaggerSpecBuilder
         if(plugin.isMethodAllowed(HttpMethod.GET) || plugin.isMethodAllowed(HttpMethod.PUT) ||
                 plugin.isMethodAllowed(HttpMethod.DELETE))
         {
-            apis.add(buildIdApi(plugin));
+            apis.add(buildIdApi(plugin,resourceBundle));
         }
 
         if(plugin.isMethodAllowed(HttpMethod.GET) || plugin.isMethodAllowed(HttpMethod.POST))
-            apis.add(buildApi(plugin));
+            apis.add(buildApi(plugin,resourceBundle));
 
         TypeFactory typeFactory = objectMapper.getTypeFactory();
 
         if(plugin.isHistoryEnabled())
         {
-            apis.add(buildHistory(plugin));
+            apis.add(buildHistory(plugin,resourceBundle));
             models.putAll(buildModels(String.format("%sHistoryResponse", plugin.getEndpointName()),
                     typeFactory.constructParametricType(HistoryResponse.class, Serializable.class, pluginVersion.getApiClass())));
         }
@@ -124,8 +129,10 @@ public class SwaggerSpecBuilder
         return api;
     }
 
-    private Api buildHistory(EntityPlugin plugin)
+    private Api buildHistory(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
+
+
         Api api = new Api();
         api.setPath(String.format("/%s/history/{id}",plugin.getEndpointName()));
         api.setDescription(plugin.getEndpointName());
@@ -134,25 +141,25 @@ public class SwaggerSpecBuilder
 
         Operation operation = new Operation();
         operation.setMethod("GET");
-        operation.setNickname(String.format("get%s",plugin.getEndpointName()));
-        operation.setSummary("Retrieve history for an entity.");
-        operation.setType(String.format("%sHistoryResponse",plugin.getEndpointName()));
+        operation.setNickname(String.format("get%s", plugin.getEndpointName()));
+        operation.setSummary(resourceBundle.getString("history.summary"));
+        operation.setNotes(resourceBundle.getString("history.notes"));
+        operation.setType(String.format("%sHistoryResponse", plugin.getEndpointName()));
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildParameter("id",
-                "The ID of the item to retrieve history for.",
+        parameters.add(buildParameter("id",resourceBundle.getString("history.param.id.description"),
                 "path",
                 "string",
                 true));
-        parameters.add(buildParameter("start","The starting position for the results. This defaults to 1. Used for paging.","query","string"));
-        parameters.add(buildParameter("limit","The maximum number of results to return in the query. This defaults to 500. Used for paging.","query","string"));
+        parameters.add(buildParameter("start",resourceBundle.getString("history.param.start.description"),"query","string"));
+        parameters.add(buildParameter("limit",resourceBundle.getString("history.param.limit.description"),"query","string"));
         operations.add(operation);
 
         return api;
     }
 
-    private Api buildApi(EntityPlugin plugin)
+    private Api buildApi(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Api api = new Api();
         api.setPath(String.format("/%s",plugin.getEndpointName()));
@@ -160,54 +167,56 @@ public class SwaggerSpecBuilder
         List<Operation> operations = new ArrayList<Operation>();
         api.setOperations(operations);
         if(plugin.isMethodAllowed(HttpMethod.GET))
-            operations.add(buildQueryOperation(plugin));
+            operations.add(buildQueryOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.POST))
-            operations.add(buildCreateOperation(plugin));        
+            operations.add(buildCreateOperation(plugin,resourceBundle));
         return api;
     }
 
-    private Operation buildCreateOperation(EntityPlugin plugin)
+    private Operation buildCreateOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
         operation.setMethod("POST");
         operation.setNickname(String.format("create%s", plugin.getEndpointName()));
-        operation.setSummary("Create an item.");
+        operation.setSummary(resourceBundle.getString("create.summary"));
+        operation.setNotes(resourceBundle.getString("create.notes"));
         operation.setType(plugin.getEndpointName());
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildParameter("fields","A comma separated list of fields to return.","query","string"));
+        parameters.add(buildParameter("fields",resourceBundle.getString("create.param.fields.description"),"query","string"));
         parameters.add(buildParameter("version",
-                "An optional API version. If omitted the latest API version is used.",
+                resourceBundle.getString("create.param.version.description"),
                 "query",
                 "string"));
-        parameters.add(buildParameter(null,"New entity","body",plugin.getEndpointName()));
+        parameters.add(buildParameter(null,resourceBundle.getString("create.param.body.description"),"body",plugin.getEndpointName()));
         return operation;
     }
 
-    private Operation buildQueryOperation(EntityPlugin plugin)
+    private Operation buildQueryOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
         operation.setMethod("GET");
         operation.setNickname(String.format("get%s", plugin.getEndpointName()));
-        operation.setSummary("Query items.");
+        operation.setSummary(resourceBundle.getString("query.summary"));
+        operation.setNotes(resourceBundle.getString("query.notes"));
         operation.setType(String.format("%sEntityResponse", plugin.getEndpointName()));
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildParameter("fields", "A comma separated list of fields to return.", "query", "string"));
-        parameters.add(buildParameter("sort","An optional comma separated list of sort fields. Descending Creative may be specified by using the form fieldName:desc","query","string"));
-        parameters.add(buildParameter("start","The starting position for the results. This defaults to 1. Used for paging.","query","string"));
-        parameters.add(buildParameter("limit","The maximum number of results to return in the query. This defaults to 500. Used for paging.","query","string"));
-        parameters.add(buildParameter("query","An optional query specified in RSQL.","query","string"));
+        parameters.add(buildParameter("fields", resourceBundle.getString("query.param.fields.description"), "query", "string"));
+        parameters.add(buildParameter("sort", resourceBundle.getString("query.param.sort.description"),"query","string"));
+        parameters.add(buildParameter("start", resourceBundle.getString("query.param.start.description"),"query","string"));
+        parameters.add(buildParameter("limit", resourceBundle.getString("query.param.limit.description"),"query","string"));
+        parameters.add(buildParameter("query", resourceBundle.getString("query.param.query.description"),"query","string"));
         parameters.add(buildParameter("version",
-                "An optional API version. If omitted the latest API version is used.",
+                resourceBundle.getString("query.param.version.description"),
                 "query",
                 "string"));
         return operation;
     }
 
-    private Api buildIdApi(EntityPlugin plugin)
+    private Api buildIdApi(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Api api = new Api();
         api.setPath(String.format("/%s/{id}",plugin.getEndpointName()));
@@ -215,75 +224,78 @@ public class SwaggerSpecBuilder
         List<Operation> operations = new ArrayList<Operation>();
         api.setOperations(operations);
         if(plugin.isMethodAllowed(HttpMethod.GET))
-            operations.add(buildGetOperation(plugin));
+            operations.add(buildGetOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.DELETE))
-            operations.add(buildDeleteOperation(plugin));
+            operations.add(buildDeleteOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.PUT))
-            operations.add(buildUpdateOperation(plugin));
+            operations.add(buildUpdateOperation(plugin,resourceBundle));
 
         return api;
     }
 
-    private Operation buildUpdateOperation(EntityPlugin plugin)
+    private Operation buildUpdateOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
         operation.setMethod("PUT");
         operation.setNickname(String.format("update%s", plugin.getEndpointName()));
-        operation.setSummary("Update an item.");
+        operation.setSummary(resourceBundle.getString("update.summary"));
+        operation.setNotes(resourceBundle.getString("update.notes"));
         operation.setType(plugin.getEndpointName());
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("id",
-                "The id of the item being updated. If the id is also in the payload it must match this id.",
+                resourceBundle.getString("update.param.id.description"),
                 "path",
                 "string",
                 true));
-        parameters.add(buildParameter("fields","A comma separated list of fields to return.","query","string"));
+        parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
         parameters.add(buildParameter("version",
-                "An optional API version. If omitted the latest API version is used.",
+                resourceBundle.getString("update.param.version.description"),
                 "query",
                 "string"));
-        parameters.add(buildParameter(null,"Updated entity","body",plugin.getEndpointName()));
+        parameters.add(buildParameter(null,resourceBundle.getString("update.param.body.description"),"body",plugin.getEndpointName()));
         return operation;
     }
 
-    private Operation buildDeleteOperation(EntityPlugin plugin)
+    private Operation buildDeleteOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
         operation.setMethod("DELETE");
         operation.setNickname(String.format("delete%s",plugin.getEndpointName()));
-        operation.setSummary("Update an item.");
+        operation.setSummary(resourceBundle.getString("delete.summary"));
+        operation.setNotes(resourceBundle.getString("delete.notes"));
         operation.setType(String.format("%sDeleteResponse",plugin.getEndpointName()));
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("id",
-                "One or more comma separated ids to delete.",
+                resourceBundle.getString("delete.param.id.description"),
                 "path",
                 "string",
                 true));
         return operation;
     }
 
-    private Operation buildGetOperation(EntityPlugin plugin)
+    private Operation buildGetOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
         operation.setMethod("GET");
         operation.setNickname(String.format("get%s",plugin.getEndpointName()));
-        operation.setSummary("Find items by ID.");
+        operation.setSummary(resourceBundle.getString("get.summary"));
+        operation.setNotes(resourceBundle.getString("get.notes"));
         operation.setType(String.format("%sEntityResponse",plugin.getEndpointName()));
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("id",
-                "One or more comma separated ids to retrieve.",
+                resourceBundle.getString("get.param.id.description"),
                 "path",
                 "string",
                 true));
-        parameters.add(buildParameter("fields","A comma separated list of fields to return.","query","string"));
+        parameters.add(buildParameter("fields",resourceBundle.getString("get.param.fields.description"),"query","string"));
         parameters.add(buildParameter("version",
-                "An optional API version. If omitted the latest API version is used.",
+                resourceBundle.getString("get.param.version.description"),
                 "query",
                 "string"));
         return operation;
@@ -306,24 +318,9 @@ public class SwaggerSpecBuilder
         return parameter;
     }
 
-    private Model buildModel(String name, JavaType type)
+    protected ResourceBundle getResourceBundle(String endpoint)
     {
-        try
-        {
-            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
-            objectMapper.acceptJsonFormatVisitor(type, visitor);
-            JsonSchema jsonSchema = visitor.finalSchema();
-
-            Model model = new Model();
-            model.setId(name);
-            model.setProperties(((ObjectSchema) jsonSchema).getProperties());
-            return model;
-        }
-        catch (JsonMappingException e)
-        {
-            logger.warn("Error generating model for type {}",type);
-        }
-        return null;
+        return ResourceBundle.getBundle(resourceBundleBase,new Locale(endpoint));
     }
 
     protected Map<String,Model> buildModels(String name,JavaType type)
