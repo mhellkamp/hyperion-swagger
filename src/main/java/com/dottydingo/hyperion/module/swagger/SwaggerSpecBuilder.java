@@ -229,7 +229,7 @@ public class SwaggerSpecBuilder
         parameters.add(buildParameter("limit", resourceBundle.getString("query.param.limit.description"),"query","string"));
         parameters.add(buildParameter("query", resourceBundle.getString("query.param.query.description"),"query","string"));
         parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("create.param.version.description"),
+                resourceBundle.getString("query.param.version.description"),
                 "query",
                 "string",
                 endpointConfiguration.isRequireVersion()));
@@ -276,7 +276,7 @@ public class SwaggerSpecBuilder
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
         parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("create.param.version.description"),
+                resourceBundle.getString("update.param.version.description"),
                 "query",
                 "string",
                 endpointConfiguration.isRequireVersion()));
@@ -331,7 +331,7 @@ public class SwaggerSpecBuilder
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("get.param.fields.description"),"query","string"));
         parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("create.param.version.description"),
+                resourceBundle.getString("get.param.version.description"),
                 "query",
                 "string",
                 endpointConfiguration.isRequireVersion()));
