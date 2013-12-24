@@ -5,6 +5,7 @@ import com.dottydingo.hyperion.api.EntityResponse;
 import com.dottydingo.hyperion.api.HistoryResponse;
 import com.dottydingo.hyperion.service.configuration.ApiVersionPlugin;
 import com.dottydingo.hyperion.service.configuration.EntityPlugin;
+import com.dottydingo.hyperion.service.configuration.HyperionEndpointConfiguration;
 import com.dottydingo.hyperion.service.configuration.ServiceRegistry;
 import com.dottydingo.hyperion.service.context.HttpMethod;
 import com.fasterxml.jackson.databind.JavaType;
@@ -26,6 +27,7 @@ public class SwaggerSpecBuilder
 {
     private Logger logger = LoggerFactory.getLogger(SwaggerSpecBuilder.class);
     private ServiceRegistry serviceRegistry;
+    private HyperionEndpointConfiguration endpointConfiguration;
     private String basePath;
     private ObjectMapper objectMapper;
     private List<Resource> additionalResources = Collections.emptyList();
@@ -34,6 +36,11 @@ public class SwaggerSpecBuilder
     public void setServiceRegistry(ServiceRegistry serviceRegistry)
     {
         this.serviceRegistry = serviceRegistry;
+    }
+
+    public void setEndpointConfiguration(HyperionEndpointConfiguration endpointConfiguration)
+    {
+        this.endpointConfiguration = endpointConfiguration;
     }
 
     public void setBasePath(String basePath)
@@ -154,6 +161,12 @@ public class SwaggerSpecBuilder
                 true));
         parameters.add(buildParameter("start",resourceBundle.getString("history.param.start.description"),"query","string"));
         parameters.add(buildParameter("limit",resourceBundle.getString("history.param.limit.description"),"query","string"));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("history.param.trace.description"),
+                    "query",
+                    "string"));
+
         operations.add(operation);
 
         return api;
@@ -185,11 +198,17 @@ public class SwaggerSpecBuilder
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("fields",resourceBundle.getString("create.param.fields.description"),"query","string"));
-        parameters.add(buildParameter("version",
+        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("create.param.version.description"),
                 "query",
-                "string"));
+                "string",
+                endpointConfiguration.isRequireVersion()));
         parameters.add(buildParameter(null,resourceBundle.getString("create.param.body.description"),"body",plugin.getEndpointName()));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("create.param.trace.description"),
+                    "query",
+                    "string"));
         return operation;
     }
 
@@ -209,10 +228,16 @@ public class SwaggerSpecBuilder
         parameters.add(buildParameter("start", resourceBundle.getString("query.param.start.description"),"query","string"));
         parameters.add(buildParameter("limit", resourceBundle.getString("query.param.limit.description"),"query","string"));
         parameters.add(buildParameter("query", resourceBundle.getString("query.param.query.description"),"query","string"));
-        parameters.add(buildParameter("version",
-                resourceBundle.getString("query.param.version.description"),
+        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
                 "query",
-                "string"));
+                "string",
+                endpointConfiguration.isRequireVersion()));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("query.param.trace.description"),
+                    "query",
+                    "string"));
         return operation;
     }
 
@@ -250,11 +275,17 @@ public class SwaggerSpecBuilder
                 "string",
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
-        parameters.add(buildParameter("version",
-                resourceBundle.getString("update.param.version.description"),
+        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
                 "query",
-                "string"));
+                "string",
+                endpointConfiguration.isRequireVersion()));
         parameters.add(buildParameter(null,resourceBundle.getString("update.param.body.description"),"body",plugin.getEndpointName()));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("update.param.trace.description"),
+                    "query",
+                    "string"));
         return operation;
     }
 
@@ -274,6 +305,11 @@ public class SwaggerSpecBuilder
                 "path",
                 "string",
                 true));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("delete.param.trace.description"),
+                    "query",
+                    "string"));
         return operation;
     }
 
@@ -294,10 +330,16 @@ public class SwaggerSpecBuilder
                 "string",
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("get.param.fields.description"),"query","string"));
-        parameters.add(buildParameter("version",
-                resourceBundle.getString("get.param.version.description"),
+        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
                 "query",
-                "string"));
+                "string",
+                endpointConfiguration.isRequireVersion()));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("get.param.trace.description"),
+                    "query",
+                    "string"));
         return operation;
     }
 
