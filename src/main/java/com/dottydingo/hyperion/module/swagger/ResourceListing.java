@@ -11,7 +11,7 @@ public class ResourceListing
 {
     private String apiVersion;
     private String swaggerVersion;
-    private List<Resource> apis;
+    private List<ApiResource> apis;
 
     public String getApiVersion()
     {
@@ -33,12 +33,12 @@ public class ResourceListing
         this.swaggerVersion = swaggerVersion;
     }
 
-    public List<Resource> getApis()
+    public List<ApiResource> getApis()
     {
         return apis;
     }
 
-    public void setApis(List<Resource> apis)
+    public void setApis(List<ApiResource> apis)
     {
         this.apis = apis;
     }

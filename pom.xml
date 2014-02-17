@@ -14,11 +14,11 @@
     <artifactId>hyperion-swagger</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>Hyperion</name>
+    <name>Hyperion Swagger</name>
     <description>
-        A framework for creating data services.
+        Swagger API spec generation for Hyperion
     </description>
-    <url>http://github.com/dottydingo/hyperion/wiki</url>
+    <url>http://github.com/mhellkamp/hyperion/wiki</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>

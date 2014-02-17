@@ -12,8 +12,8 @@ import java.io.IOException;
  */
 public class SwaggerRequestHandler  implements HttpRequestHandler
 {
-    private SwaggerSpecBuilder swaggerSpecBuilder;
-    private ObjectMapper objectMapper;
+    protected SwaggerSpecBuilder swaggerSpecBuilder;
+    protected ObjectMapper objectMapper;
 
     public void setSwaggerSpecBuilder(SwaggerSpecBuilder swaggerSpecBuilder)
     {
@@ -38,25 +38,35 @@ public class SwaggerRequestHandler  implements HttpRequestHandler
 
         if(path.equals("/"))
         {
-            ResourceListing listing = swaggerSpecBuilder.buildResourceListing();
-            objectMapper.writeValue(httpServletResponse.getOutputStream(),listing);
+            handleResourceListing(httpServletResponse);
             return;
         }
 
         String[] split = path.split("/");
         if(split.length == 2)
         {
-            ApiDeclaration declaration = swaggerSpecBuilder.buildEndpoint(split[1]);
-            if(declaration == null)
-            {
-                httpServletResponse.sendError(404);
-                return;
-            }
-            objectMapper.writeValue(httpServletResponse.getOutputStream(),declaration);
+            handleApiListing(httpServletResponse, split[1]);
         }
         else
         {
             httpServletResponse.sendError(404);
         }
+    }
+
+    protected void handleResourceListing(HttpServletResponse httpServletResponse) throws IOException
+    {
+        ResourceListing listing = swaggerSpecBuilder.buildResourceListing();
+        objectMapper.writeValue(httpServletResponse.getOutputStream(),listing);
+    }
+
+    protected void handleApiListing(HttpServletResponse httpServletResponse, String endpoint) throws IOException
+    {
+        ApiDeclaration declaration = swaggerSpecBuilder.buildEndpoint(endpoint);
+        if(declaration == null)
+        {
+            httpServletResponse.sendError(404);
+            return;
+        }
+        objectMapper.writeValue(httpServletResponse.getOutputStream(),declaration);
     }
 }

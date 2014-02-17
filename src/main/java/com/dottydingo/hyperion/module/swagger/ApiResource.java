@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 /**
  */
 @JsonPropertyOrder({"path","description"})
-public class Resource
+public class ApiResource
 {
     private String path;
     private String description;

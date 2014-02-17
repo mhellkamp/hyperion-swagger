@@ -29,8 +29,7 @@ public class SwaggerSpecBuilder
     private ServiceRegistry serviceRegistry;
     private HyperionEndpointConfiguration endpointConfiguration;
     private String basePath;
-    private ObjectMapper objectMapper;
-    private List<Resource> additionalResources = Collections.emptyList();
+    protected ObjectMapper objectMapper;
     private String resourceBundleBase = "com.dottydingo.hyperion.module.swagger.Messages";
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry)
@@ -53,11 +52,6 @@ public class SwaggerSpecBuilder
         this.objectMapper = objectMapper;
     }
 
-    public void setAdditionalResources(List<Resource> additionalResources)
-    {
-        this.additionalResources = additionalResources;
-    }
-
     public void setResourceBundleBase(String resourceBundleBase)
     {
         this.resourceBundleBase = resourceBundleBase;
@@ -69,16 +63,15 @@ public class SwaggerSpecBuilder
         listing.setApiVersion("1.0");
         listing.setSwaggerVersion("1.2");
 
-        List<Resource> resources = new ArrayList<Resource>();
+        List<ApiResource> apiResources = new ArrayList<ApiResource>();
         for (EntityPlugin plugin : serviceRegistry.getEntityPlugins())
         {
-            Resource resource = new Resource();
-            resource.setDescription(plugin.getEndpointName());
-            resource.setPath(String.format("/%s",plugin.getEndpointName()));
-            resources.add(resource);
+            ApiResource apiResource = new ApiResource();
+            apiResource.setDescription(plugin.getEndpointName());
+            apiResource.setPath(String.format("/%s",plugin.getEndpointName()));
+            apiResources.add(apiResource);
         }
-        resources.addAll(additionalResources);
-        listing.setApis(resources);
+        listing.setApis(apiResources);
         return listing;
     }
 
