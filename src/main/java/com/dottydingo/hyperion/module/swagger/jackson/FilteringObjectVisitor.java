@@ -1,18 +1,19 @@
-package com.dottydingo.hyperion.module.swagger;
+package com.dottydingo.hyperion.module.swagger.jackson;
 
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchema.types.AnySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 
+import java.util.Map;
+
 /**
  */
 public class FilteringObjectVisitor extends ObjectVisitor
 {
+
     public FilteringObjectVisitor(SerializerProvider provider, ObjectSchema schema)
     {
         super(provider, schema);
@@ -26,4 +27,5 @@ public class FilteringObjectVisitor extends ObjectVisitor
 
         return super.propertySchema(writer);
     }
+
 }

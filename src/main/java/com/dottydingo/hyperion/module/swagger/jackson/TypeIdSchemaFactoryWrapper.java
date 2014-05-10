@@ -1,5 +1,6 @@
-package com.dottydingo.hyperion.module.swagger;
+package com.dottydingo.hyperion.module.swagger.jackson;
 
+import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
@@ -9,12 +10,13 @@ import com.fasterxml.jackson.module.jsonSchema.factories.ArrayVisitor;
 import com.fasterxml.jackson.module.jsonSchema.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchema.factories.WrapperFactory;import java.lang.Override;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 /**
  */
 public class TypeIdSchemaFactoryWrapper extends SchemaFactoryWrapper
 {
+
     private WrapperFactory wrapperFactory = new WrapperFactory() {
         @Override
         public SchemaFactoryWrapper getWrapper(SerializerProvider p) {

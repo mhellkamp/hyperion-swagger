@@ -3,11 +3,14 @@ package com.dottydingo.hyperion.module.swagger;
 import com.dottydingo.hyperion.api.DeleteResponse;
 import com.dottydingo.hyperion.api.EntityResponse;
 import com.dottydingo.hyperion.api.HistoryResponse;
+import com.dottydingo.hyperion.module.swagger.jackson.SchemaBeanSerializerFactory;
+import com.dottydingo.hyperion.module.swagger.jackson.TypeIdSchemaFactoryWrapper;
 import com.dottydingo.hyperion.service.configuration.ApiVersionPlugin;
 import com.dottydingo.hyperion.service.configuration.EntityPlugin;
 import com.dottydingo.hyperion.service.configuration.HyperionEndpointConfiguration;
 import com.dottydingo.hyperion.service.configuration.ServiceRegistry;
 import com.dottydingo.hyperion.service.context.HttpMethod;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,13 +20,14 @@ import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.Serializable;
 import java.util.*;
 
 /**
  */
-public class SwaggerSpecBuilder
+public class SwaggerSpecBuilder implements InitializingBean
 {
     private Logger logger = LoggerFactory.getLogger(SwaggerSpecBuilder.class);
     private ServiceRegistry serviceRegistry;
@@ -49,12 +53,22 @@ public class SwaggerSpecBuilder
 
     public void setObjectMapper(ObjectMapper objectMapper)
     {
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper.copy();
     }
 
     public void setResourceBundleBase(String resourceBundleBase)
     {
         this.resourceBundleBase = resourceBundleBase;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception
+    {
+        if(objectMapper == null)
+            objectMapper = new ObjectMapper();
+
+        objectMapper.setSerializerFactory(new SchemaBeanSerializerFactory(null));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public ResourceListing buildResourceListing()

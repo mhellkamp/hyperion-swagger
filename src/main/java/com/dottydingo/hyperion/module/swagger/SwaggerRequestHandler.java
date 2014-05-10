@@ -13,7 +13,7 @@ import java.io.IOException;
 public class SwaggerRequestHandler  implements HttpRequestHandler
 {
     protected SwaggerSpecBuilder swaggerSpecBuilder;
-    protected ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper = new ObjectMapper();
 
     public void setSwaggerSpecBuilder(SwaggerSpecBuilder swaggerSpecBuilder)
     {
