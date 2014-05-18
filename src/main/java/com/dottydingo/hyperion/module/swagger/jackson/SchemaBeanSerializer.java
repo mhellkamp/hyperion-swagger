@@ -18,7 +18,13 @@ import java.util.Set;
  */
 public class SchemaBeanSerializer extends BeanSerializer
 {
-    private Set<JavaType> visited = new HashSet<JavaType>();
+    private static final ThreadLocal<Set<JavaType>>  visitedThreadLocal = new ThreadLocal<Set<JavaType>>(){
+        @Override
+        protected Set<JavaType> initialValue()
+        {
+            return new HashSet<JavaType>();
+        }
+    };
 
     protected SchemaBeanSerializer(BeanSerializerBase src)
     {
@@ -58,6 +64,8 @@ public class SchemaBeanSerializer extends BeanSerializer
         if (objectVisitor == null) {
             return;
         }
+
+        Set<JavaType> visited = visitedThreadLocal.get();
 
         if(!visited.add(typeHint))
             return;
