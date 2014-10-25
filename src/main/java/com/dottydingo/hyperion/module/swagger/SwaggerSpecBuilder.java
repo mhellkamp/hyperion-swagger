@@ -205,17 +205,18 @@ public class SwaggerSpecBuilder implements InitializingBean
         operation.setParameters(parameters);
 
         parameters.add(buildParameter("fields",resourceBundle.getString("create.param.fields.description"),"query","string"));
-        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("create.param.version.description"),
-                "query",
-                "string",
-                endpointConfiguration.isRequireVersion()));
+                endpointConfiguration.isRequireVersion(),
+                plugin));
         parameters.add(buildParameter(null,resourceBundle.getString("create.param.body.description"),"body",plugin.getEndpointName()));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("create.param.trace.description"),
                     "query",
                     "string"));
+
+        parameters.addAll(buildAdditionalParameters(plugin));
         return operation;
     }
 
@@ -235,16 +236,16 @@ public class SwaggerSpecBuilder implements InitializingBean
         parameters.add(buildParameter("start", resourceBundle.getString("query.param.start.description"),"query","string"));
         parameters.add(buildParameter("limit", resourceBundle.getString("query.param.limit.description"),"query","string"));
         parameters.add(buildParameter("query", resourceBundle.getString("query.param.query.description"),"query","string"));
-        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("query.param.version.description"),
-                "query",
-                "string",
-                endpointConfiguration.isRequireVersion()));
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
+                endpointConfiguration.isRequireVersion(),
+                plugin));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("query.param.trace.description"),
                     "query",
                     "string"));
+        parameters.addAll(buildAdditionalParameters(plugin));
         return operation;
     }
 
@@ -282,17 +283,17 @@ public class SwaggerSpecBuilder implements InitializingBean
                 "string",
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
-        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("update.param.version.description"),
-                "query",
-                "string",
-                endpointConfiguration.isRequireVersion()));
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
+                endpointConfiguration.isRequireVersion(),
+                plugin));
         parameters.add(buildParameter(null,resourceBundle.getString("update.param.body.description"),"body",plugin.getEndpointName()));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("update.param.trace.description"),
                     "query",
                     "string"));
+        parameters.addAll(buildAdditionalParameters(plugin));
         return operation;
     }
 
@@ -317,6 +318,7 @@ public class SwaggerSpecBuilder implements InitializingBean
                     resourceBundle.getString("delete.param.trace.description"),
                     "query",
                     "string"));
+        parameters.addAll(buildAdditionalParameters(plugin));
         return operation;
     }
 
@@ -337,16 +339,16 @@ public class SwaggerSpecBuilder implements InitializingBean
                 "string",
                 true));
         parameters.add(buildParameter("fields",resourceBundle.getString("get.param.fields.description"),"query","string"));
-        parameters.add(buildParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("get.param.version.description"),
-                "query",
-                "string",
-                endpointConfiguration.isRequireVersion()));
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("create.param.version.description"),
+                endpointConfiguration.isRequireVersion(),
+                plugin));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("get.param.trace.description"),
                     "query",
                     "string"));
+        parameters.addAll(buildAdditionalParameters(plugin));
         return operation;
     }
 
@@ -365,6 +367,42 @@ public class SwaggerSpecBuilder implements InitializingBean
         parameter.setDataType(dataType);
         parameter.setRequired(required);
         return parameter;
+    }
+
+    private Parameter buildVersionParameter(String name,String description,boolean required,EntityPlugin entityPlugin)
+    {
+        List<String> versions = new ArrayList<String>();
+        List<Integer> pv = entityPlugin.getApiVersionRegistry().getVersions();
+        for (Integer version : pv)
+        {
+            versions.add(version.toString());
+        }
+
+        Parameter parameter = new Parameter();
+        parameter.setName(name);
+        parameter.setDescription(description);
+        parameter.setParamType("query");
+        parameter.setDataType("string");
+        parameter.setRequired(required);
+        parameter.setPossibleValues(versions);
+        parameter.setDefaultValue(entityPlugin.getApiVersionRegistry().getLatestVersion().toString());
+        return parameter;
+    }
+
+    private List<Parameter> buildAdditionalParameters(EntityPlugin plugin)
+    {
+        Set<String> additionalParameters = plugin.getAdditionalParameters();
+
+        if(additionalParameters.isEmpty())
+            return Collections.emptyList();
+
+        List<Parameter> parameters = new ArrayList<Parameter>();
+        for (String additionalParameter : additionalParameters)
+        {
+            parameters.add(buildParameter(additionalParameter,"","query","string"));
+        }
+
+        return parameters;
     }
 
     protected ResourceBundle getResourceBundle(String endpoint)

@@ -1,10 +1,13 @@
 package com.dottydingo.hyperion.module.swagger;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+import java.util.List;
 
 /**
  */
-@JsonPropertyOrder({"paramType","name","description","dataType","format","required","minimum","maximum"})
+@JsonPropertyOrder({"paramType","name","description","dataType","format","required","minimum","maximum","defaultValue","enum"})
 public class Parameter
 {
     private String paramType;
@@ -15,6 +18,8 @@ public class Parameter
     private boolean required;
     private Integer minimum;
     private Integer maximum;
+    private String defaultValue;
+    private List<String> possibleValues;
 
     public String getParamType()
     {
@@ -94,5 +99,26 @@ public class Parameter
     public void setMaximum(Integer maximum)
     {
         this.maximum = maximum;
+    }
+
+    public String getDefaultValue()
+    {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue)
+    {
+        this.defaultValue = defaultValue;
+    }
+
+    public List<String> getPossibleValues()
+    {
+        return possibleValues;
+    }
+
+    @JsonProperty("enum")
+    public void setPossibleValues(List<String> possibleValues)
+    {
+        this.possibleValues = possibleValues;
     }
 }
