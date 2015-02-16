@@ -152,7 +152,6 @@
                         <configuration>
                             <artifactSet>
                                 <includes>
-                                    <include>com.fasterxml.jackson.core:jackson-annotations</include>
                                     <include>com.fasterxml.jackson.core:jackson-core</include>
                                     <include>com.fasterxml.jackson.core:jackson-databind</include>
                                     <include>com.fasterxml.jackson.module:jackson-module-jsonSchema</include>
@@ -162,6 +161,9 @@
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>com.dottydingo.hyperion.module.swagger.shade.jackson</shadedPattern>
+                                    <excludes>
+                                        <exclude>com.fasterxml.jackson.annotation.*</exclude>
+                                    </excludes>
                                 </relocation>
                             </relocations>
                         </configuration>
