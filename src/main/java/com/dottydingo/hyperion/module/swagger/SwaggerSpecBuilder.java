@@ -35,6 +35,7 @@ public class SwaggerSpecBuilder implements InitializingBean
     private String basePath;
     protected ObjectMapper objectMapper;
     private String resourceBundleBase = "com.dottydingo.hyperion.module.swagger.Messages";
+    private Map<Class,Class> mixins = new HashMap<Class, Class>();
 
     public void setServiceRegistry(ServiceRegistry serviceRegistry)
     {
@@ -51,9 +52,9 @@ public class SwaggerSpecBuilder implements InitializingBean
         this.basePath = basePath;
     }
 
-    public void setObjectMapper(ObjectMapper objectMapper)
+    public void setMixins(Map<Class, Class> mixins)
     {
-        this.objectMapper = objectMapper.copy();
+        this.mixins = mixins;
     }
 
     public void setResourceBundleBase(String resourceBundleBase)
@@ -64,11 +65,14 @@ public class SwaggerSpecBuilder implements InitializingBean
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        if(objectMapper == null)
-            objectMapper = new ObjectMapper();
+        objectMapper = new ObjectMapper();
 
         objectMapper.setSerializerFactory(new SchemaBeanSerializerFactory(null));
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        for (Map.Entry<Class, Class> mixinEntry : mixins.entrySet())
+        {
+            objectMapper.addMixInAnnotations(mixinEntry.getKey(),mixinEntry.getValue());
+        }
     }
 
     public ResourceListing buildResourceListing()
@@ -204,12 +208,14 @@ public class SwaggerSpecBuilder implements InitializingBean
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildParameter("fields",resourceBundle.getString("create.param.fields.description"),"query","string"));
+        parameters.add(buildParameter("fields", resourceBundle.getString("create.param.fields.description"), "query",
+                "string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("create.param.version.description"),
                 endpointConfiguration.isRequireVersion(),
                 plugin));
-        parameters.add(buildParameter(null,resourceBundle.getString("create.param.body.description"),"body",plugin.getEndpointName()));
+        parameters.add(buildParameter(null, resourceBundle.getString("create.param.body.description"), "body",
+                plugin.getEndpointName()));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("create.param.trace.description"),
@@ -252,7 +258,7 @@ public class SwaggerSpecBuilder implements InitializingBean
     private Api buildIdApi(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Api api = new Api();
-        api.setPath(String.format("/%s/{id}",plugin.getEndpointName()));
+        api.setPath(String.format("/%s/{id}", plugin.getEndpointName()));
         api.setDescription(plugin.getEndpointName());
         List<Operation> operations = new ArrayList<Operation>();
         api.setOperations(operations);
@@ -287,7 +293,8 @@ public class SwaggerSpecBuilder implements InitializingBean
                 resourceBundle.getString("create.param.version.description"),
                 endpointConfiguration.isRequireVersion(),
                 plugin));
-        parameters.add(buildParameter(null,resourceBundle.getString("update.param.body.description"),"body",plugin.getEndpointName()));
+        parameters.add(buildParameter(null, resourceBundle.getString("update.param.body.description"), "body",
+                plugin.getEndpointName()));
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("update.param.trace.description"),
@@ -301,7 +308,7 @@ public class SwaggerSpecBuilder implements InitializingBean
     {
         Operation operation = new Operation();
         operation.setMethod("DELETE");
-        operation.setNickname(String.format("delete%s",plugin.getEndpointName()));
+        operation.setNickname(String.format("delete%s", plugin.getEndpointName()));
         operation.setSummary(resourceBundle.getString("delete.summary"));
         operation.setNotes(resourceBundle.getString("delete.notes"));
         operation.setType(String.format("%sDeleteResponse",plugin.getEndpointName()));
@@ -329,7 +336,7 @@ public class SwaggerSpecBuilder implements InitializingBean
         operation.setNickname(String.format("get%s",plugin.getEndpointName()));
         operation.setSummary(resourceBundle.getString("get.summary"));
         operation.setNotes(resourceBundle.getString("get.notes"));
-        operation.setType(String.format("%sEntityResponse",plugin.getEndpointName()));
+        operation.setType(String.format("%sEntityResponse", plugin.getEndpointName()));
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
@@ -338,7 +345,8 @@ public class SwaggerSpecBuilder implements InitializingBean
                 "path",
                 "string",
                 true));
-        parameters.add(buildParameter("fields",resourceBundle.getString("get.param.fields.description"),"query","string"));
+        parameters.add(buildParameter("fields", resourceBundle.getString("get.param.fields.description"), "query",
+                "string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("create.param.version.description"),
                 endpointConfiguration.isRequireVersion(),

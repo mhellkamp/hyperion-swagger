@@ -26,11 +26,6 @@ public class SwaggerRequestHandler  implements HttpRequestHandler,InitializingBe
         this.swaggerSpecBuilder = swaggerSpecBuilder;
     }
 
-    public void setObjectMapper(ObjectMapper objectMapper)
-    {
-        this.objectMapper = objectMapper.copy();
-    }
-
     public void setAdditionalResources(List<ResourceHandler> additionalResources)
     {
         if(additionalResources != null)
@@ -46,9 +41,7 @@ public class SwaggerRequestHandler  implements HttpRequestHandler,InitializingBe
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        if(objectMapper == null)
-            objectMapper = new ObjectMapper();
-
+        objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
