@@ -208,6 +208,7 @@ public class SwaggerSpecBuilder implements InitializingBean
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
+        parameters.add(buildBooleanParameter("collection",resourceBundle.getString("create.param.collection.description"),"query","false"));
         parameters.add(buildParameter("fields", resourceBundle.getString("create.param.fields.description"), "query",
                 "string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
@@ -287,10 +288,11 @@ public class SwaggerSpecBuilder implements InitializingBean
                 resourceBundle.getString("update.param.id.description"),
                 "path",
                 "string",
-                true));
+                false));
+        parameters.add(buildBooleanParameter("collection",resourceBundle.getString("update.param.collection.description"),"query","false"));
         parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
-                resourceBundle.getString("create.param.version.description"),
+                resourceBundle.getString("update.param.version.description"),
                 endpointConfiguration.isRequireVersion(),
                 plugin));
         parameters.add(buildParameter(null, resourceBundle.getString("update.param.body.description"), "body",
@@ -360,6 +362,19 @@ public class SwaggerSpecBuilder implements InitializingBean
         return operation;
     }
 
+
+    private Parameter buildBooleanParameter(String name,String description,String paramType,String defaultValue)
+    {
+        return buildBooleanParameter(name, description,  paramType,defaultValue,false);
+    }
+
+    private Parameter buildBooleanParameter(String name,String description,String paramType,String defaultValue,boolean required)
+    {
+        Parameter parameter = buildParameter(name, description, paramType, "boolean", required);
+        parameter.setPossibleValues(Arrays.asList("true","false"));
+        parameter.setDefaultValue(defaultValue);
+        return parameter;
+    }
 
     private Parameter buildParameter(String name,String description,String paramType,String dataType)
     {
