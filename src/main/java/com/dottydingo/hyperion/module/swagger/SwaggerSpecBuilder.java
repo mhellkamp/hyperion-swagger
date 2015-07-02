@@ -219,7 +219,6 @@ public class SwaggerSpecBuilder implements InitializingBean
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildBooleanParameter("collection",resourceBundle.getString("create.param.collection.description"),"query","false"));
         parameters.add(buildParameter("fields", resourceBundle.getString("create.param.fields.description"), "query",
                 "string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
@@ -329,8 +328,7 @@ public class SwaggerSpecBuilder implements InitializingBean
                 resourceBundle.getString("update.param.id.description"),
                 "path",
                 "string",
-                false));
-        parameters.add(buildBooleanParameter("collection",resourceBundle.getString("update.param.collection.description"),"query","false"));
+                true));
         parameters.add(buildParameter("fields",resourceBundle.getString("update.param.fields.description"),"query","string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("update.param.version.description"),
