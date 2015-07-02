@@ -1,6 +1,7 @@
 package com.dottydingo.hyperion.module.swagger;
 
 import com.dottydingo.hyperion.api.DeleteResponse;
+import com.dottydingo.hyperion.api.EntityList;
 import com.dottydingo.hyperion.api.EntityResponse;
 import com.dottydingo.hyperion.api.HistoryResponse;
 import com.dottydingo.hyperion.module.swagger.jackson.SchemaBeanSerializerFactory;
@@ -119,7 +120,8 @@ public class SwaggerSpecBuilder implements InitializingBean
             apis.add(buildIdApi(plugin,resourceBundle));
         }
 
-        if(plugin.isMethodAllowed(HttpMethod.GET) || plugin.isMethodAllowed(HttpMethod.POST))
+        if(plugin.isMethodAllowed(HttpMethod.GET) || plugin.isMethodAllowed(HttpMethod.PUT) ||
+                plugin.isMethodAllowed(HttpMethod.POST))
             apis.add(buildApi(plugin,resourceBundle));
 
         TypeFactory typeFactory = objectMapper.getTypeFactory();
@@ -143,6 +145,10 @@ public class SwaggerSpecBuilder implements InitializingBean
         if(plugin.isMethodAllowed(HttpMethod.DELETE))
             models.putAll(buildModels(String.format("%sDeleteResponse", plugin.getEndpointName()),
                     typeFactory.constructType(DeleteResponse.class)));
+
+        if(plugin.isMethodAllowed(HttpMethod.PUT) || plugin.isMethodAllowed(HttpMethod.POST))
+            models.putAll(buildModels(String.format("%sEntityList", plugin.getEndpointName()),
+                    typeFactory.constructParametricType(EntityList.class, pluginVersion.getApiClass())));
 
         return api;
     }
@@ -190,10 +196,15 @@ public class SwaggerSpecBuilder implements InitializingBean
         api.setDescription(plugin.getEndpointName());
         List<Operation> operations = new ArrayList<Operation>();
         api.setOperations(operations);
+        if(plugin.isMethodAllowed(HttpMethod.PUT))
+            operations.add(buildUpdateCollectionOperation(plugin, resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.GET))
             operations.add(buildQueryOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.POST))
-            operations.add(buildCreateOperation(plugin,resourceBundle));
+        {
+            operations.add(buildCreateOperation(plugin, resourceBundle));
+            operations.add(buildCreateCollectionOperation(plugin, resourceBundle));
+        }
         return api;
     }
 
@@ -220,6 +231,36 @@ public class SwaggerSpecBuilder implements InitializingBean
         if (endpointConfiguration.isAllowTrace())
             parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
                     resourceBundle.getString("create.param.trace.description"),
+                    "query",
+                    "string"));
+
+        parameters.addAll(buildAdditionalParameters(plugin));
+        return operation;
+    }
+
+    private Operation buildCreateCollectionOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
+    {
+        Operation operation = new Operation();
+        operation.setMethod("POST");
+        operation.setNickname(String.format("createCollection%s", plugin.getEndpointName()));
+        operation.setSummary(resourceBundle.getString("createCollection.summary"));
+        operation.setNotes(resourceBundle.getString("createCollection.notes"));
+        operation.setType(String.format("%sEntityList", plugin.getEndpointName()));
+        List<Parameter> parameters = new ArrayList<Parameter>();
+        operation.setParameters(parameters);
+
+        parameters.add(buildBooleanParameter("collection","","query","true"));
+        parameters.add(buildParameter("fields", resourceBundle.getString("createCollection.param.fields.description"), "query",
+                "string"));
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("createCollection.param.version.description"),
+                endpointConfiguration.isRequireVersion(),
+                plugin));
+        parameters.add(buildParameter(null, resourceBundle.getString("createCollection.param.body.description"), "body",
+                String.format("%sEntityList", plugin.getEndpointName())));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("createCollection.param.trace.description"),
                     "query",
                     "string"));
 
@@ -306,6 +347,35 @@ public class SwaggerSpecBuilder implements InitializingBean
         return operation;
     }
 
+    private Operation buildUpdateCollectionOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
+    {
+        Operation operation = new Operation();
+        operation.setMethod("PUT");
+        operation.setNickname(String.format("updateCollection%s", plugin.getEndpointName()));
+        operation.setSummary(resourceBundle.getString("updateCollection.summary"));
+        operation.setNotes(resourceBundle.getString("updateCollection.notes"));
+        operation.setType(String.format("%sEntityList", plugin.getEndpointName()));
+        List<Parameter> parameters = new ArrayList<Parameter>();
+        operation.setParameters(parameters);
+
+
+        parameters.add(buildBooleanParameter("collection","","query","true"));
+        parameters.add(buildParameter("fields",resourceBundle.getString("updateCollection.param.fields.description"),"query","string"));
+        parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
+                resourceBundle.getString("updateCollection.param.version.description"),
+                endpointConfiguration.isRequireVersion(),
+                plugin));
+        parameters.add(buildParameter(null, resourceBundle.getString("updateCollection.param.body.description"), "body",
+                String.format("%sEntityList", plugin.getEndpointName())));
+        if (endpointConfiguration.isAllowTrace())
+            parameters.add(buildParameter(endpointConfiguration.getTraceParameterName(),
+                    resourceBundle.getString("updateCollection.param.trace.description"),
+                    "query",
+                    "string"));
+        parameters.addAll(buildAdditionalParameters(plugin));
+        return operation;
+    }
+
     private Operation buildDeleteOperation(EntityPlugin plugin,ResourceBundle resourceBundle)
     {
         Operation operation = new Operation();
@@ -371,7 +441,7 @@ public class SwaggerSpecBuilder implements InitializingBean
     private Parameter buildBooleanParameter(String name,String description,String paramType,String defaultValue,boolean required)
     {
         Parameter parameter = buildParameter(name, description, paramType, "boolean", required);
-        parameter.setPossibleValues(Arrays.asList("true","false"));
+        parameter.setPossibleValues(Collections.singletonList(defaultValue));
         parameter.setDefaultValue(defaultValue);
         return parameter;
     }
