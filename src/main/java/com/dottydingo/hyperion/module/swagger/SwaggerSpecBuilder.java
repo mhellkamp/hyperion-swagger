@@ -202,7 +202,6 @@ public class SwaggerSpecBuilder implements InitializingBean
             operations.add(buildQueryOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.POST))
         {
-            operations.add(buildCreateOperation(plugin, resourceBundle));
             operations.add(buildCreateCollectionOperation(plugin, resourceBundle));
         }
         return api;
@@ -248,7 +247,6 @@ public class SwaggerSpecBuilder implements InitializingBean
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-        parameters.add(buildBooleanParameter("collection","","query","true"));
         parameters.add(buildParameter("fields", resourceBundle.getString("createCollection.param.fields.description"), "query",
                 "string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
@@ -307,8 +305,6 @@ public class SwaggerSpecBuilder implements InitializingBean
             operations.add(buildGetOperation(plugin,resourceBundle));
         if(plugin.isMethodAllowed(HttpMethod.DELETE))
             operations.add(buildDeleteOperation(plugin,resourceBundle));
-        if(plugin.isMethodAllowed(HttpMethod.PUT))
-            operations.add(buildUpdateOperation(plugin,resourceBundle));
 
         return api;
     }
@@ -356,8 +352,6 @@ public class SwaggerSpecBuilder implements InitializingBean
         List<Parameter> parameters = new ArrayList<Parameter>();
         operation.setParameters(parameters);
 
-
-        parameters.add(buildBooleanParameter("collection","","query","true"));
         parameters.add(buildParameter("fields",resourceBundle.getString("updateCollection.param.fields.description"),"query","string"));
         parameters.add(buildVersionParameter(endpointConfiguration.getVersionParameterName(),
                 resourceBundle.getString("updateCollection.param.version.description"),
