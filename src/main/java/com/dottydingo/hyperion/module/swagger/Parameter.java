@@ -7,13 +7,13 @@ import java.util.List;
 
 /**
  */
-@JsonPropertyOrder({"paramType","name","description","dataType","format","required","minimum","maximum","defaultValue","enum"})
+@JsonPropertyOrder({"paramType","name","description","type","format","required","minimum","maximum","defaultValue","enum"})
 public class Parameter
 {
     private String paramType;
     private String name;
     private String description;
-    private String dataType;
+    private String type;
     private String format;
     private boolean required;
     private Integer minimum;
@@ -51,14 +51,14 @@ public class Parameter
         this.description = description;
     }
 
-    public String getDataType()
+    public String getType()
     {
-        return dataType;
+        return type;
     }
 
-    public void setDataType(String dataType)
+    public void setType(String type)
     {
-        this.dataType = dataType;
+        this.type = type;
     }
 
     public String getFormat()

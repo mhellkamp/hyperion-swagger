@@ -449,7 +449,7 @@ public class SwaggerSpecBuilder implements InitializingBean
         parameter.setName(name);
         parameter.setDescription(description);
         parameter.setParamType(paramType);
-        parameter.setDataType(dataType);
+        parameter.setType(dataType);
         parameter.setRequired(required);
         return parameter;
     }
@@ -467,7 +467,7 @@ public class SwaggerSpecBuilder implements InitializingBean
         parameter.setName(name);
         parameter.setDescription(description);
         parameter.setParamType("query");
-        parameter.setDataType("string");
+        parameter.setType("string");
         parameter.setRequired(required);
         parameter.setPossibleValues(versions);
         parameter.setDefaultValue(entityPlugin.getApiVersionRegistry().getLatestVersion().toString());
